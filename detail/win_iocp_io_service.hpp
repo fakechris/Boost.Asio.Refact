@@ -61,6 +61,7 @@ public:
         invoke_func_type invoke_func, destroy_func_type destroy_func)
       : outstanding_operations_(&iocp_service.outstanding_operations_),
         invoke_func_(invoke_func),
+		refcount_(0), // chris
         destroy_func_(destroy_func)
     {
       Internal = 0;
@@ -82,6 +83,19 @@ public:
       destroy_func_(this);
     }
 
+	// chris
+	void addref()
+	{
+		::InterlockedIncrement(&refcount_);
+	}
+
+	long release()
+	{
+		// deallocate by caller
+		return ::InterlockedDecrement(&refcount_);
+	}
+	// chris
+
   protected:
     // Prevent deletion through this type.
     ~operation()
@@ -89,6 +103,10 @@ public:
       ::InterlockedDecrement(outstanding_operations_);
     }
 
+  // chris
+  private:	  
+    volatile long refcount_;
+  // chris	  
   private:
     long* outstanding_operations_;
     invoke_func_type invoke_func_;
@@ -295,9 +313,11 @@ public:
     raw_handler_ptr<alloc_traits> raw_ptr(handler);
     handler_ptr<alloc_traits> ptr(raw_ptr, *this, handler);
 
+	ptr.addref();
     // Enqueue the operation on the I/O completion port.
     if (!::PostQueuedCompletionStatus(iocp_.handle, 0, 0, ptr.get()))
     {
+	  ptr.releaseref();
       DWORD last_error = ::GetLastError();
       boost::system::system_error e(
           boost::system::error_code(last_error,

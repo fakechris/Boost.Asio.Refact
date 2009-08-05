@@ -70,9 +70,271 @@ struct handler_alloc_traits
 template <typename Alloc_Traits>
 class handler_ptr;
 
+template <typename Alloc_Traits>
+class handler_ptr_old;
+
 // Helper class to provide RAII on uninitialised handler memory.
 template <typename Alloc_Traits>
 class raw_handler_ptr
+	: private noncopyable
+{
+public:
+	typedef typename Alloc_Traits::handler_type handler_type;
+	typedef typename Alloc_Traits::value_type value_type;
+	typedef typename Alloc_Traits::pointer_type pointer_type;
+	BOOST_STATIC_CONSTANT(std::size_t, value_size = Alloc_Traits::value_size);
+
+	// Constructor allocates the memory.
+	raw_handler_ptr(handler_type& handler)
+		: handler_(handler),
+		pointer_(static_cast<pointer_type>(
+		boost_asio_handler_alloc_helpers::allocate(value_size, &handler_)))
+	{
+		// chris
+		//pointer_->addref();
+		// chris
+	}
+
+	// Destructor automatically deallocates memory, unless it has been stolen by
+	// a handler_ptr object.
+	~raw_handler_ptr()
+	{
+		if (pointer_)			
+		{
+			// chris
+			//if (pointer_->release() == 0) 
+			//{
+			//	boost_asio_handler_alloc_helpers::deallocate(
+			//		pointer_, value_size, &handler_);			
+			//}
+			boost_asio_handler_alloc_helpers::deallocate(
+			    pointer_, value_size, &handler_);
+		}
+		// chris
+	}
+
+private:
+	friend class handler_ptr<Alloc_Traits>;
+	handler_type& handler_;
+	pointer_type pointer_;
+};
+
+// Helper class to provide RAII on uninitialised handler memory.
+template <typename Alloc_Traits>
+class handler_ptr
+	: private noncopyable
+{
+public:
+	typedef typename Alloc_Traits::handler_type handler_type;
+	typedef typename Alloc_Traits::value_type value_type;
+	typedef typename Alloc_Traits::pointer_type pointer_type;
+	BOOST_STATIC_CONSTANT(std::size_t, value_size = Alloc_Traits::value_size);
+	typedef raw_handler_ptr<Alloc_Traits> raw_ptr_type;
+
+	// Take ownership of existing memory.
+	handler_ptr(handler_type& handler, pointer_type pointer)
+		: handler_(handler),
+		pointer_(pointer)
+	{
+		// chris
+		//pointer_->addref();
+		// chris
+	}
+
+	// Construct object in raw memory and take ownership if construction succeeds.
+	handler_ptr(raw_ptr_type& raw_ptr)
+		: handler_(raw_ptr.handler_),
+		pointer_(new (raw_ptr.pointer_) value_type)
+	{
+		// chris
+		pointer_->addref();
+		raw_ptr.pointer_ = 0;
+		// chris    
+	}
+
+	// Construct object in raw memory and take ownership if construction succeeds.
+	template <typename Arg1>
+	handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1)
+		: handler_(raw_ptr.handler_),
+		pointer_(new (raw_ptr.pointer_) value_type(a1))
+	{
+		// chris
+		pointer_->addref();
+		raw_ptr.pointer_ = 0;
+		// chris    
+	}
+
+	// Construct object in raw memory and take ownership if construction succeeds.
+	template <typename Arg1, typename Arg2>
+	handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2)
+		: handler_(raw_ptr.handler_),
+		pointer_(new (raw_ptr.pointer_) value_type(a1, a2))
+	{
+		// chris
+		pointer_->addref();
+		raw_ptr.pointer_ = 0;
+		// chris    
+	}
+
+	// Construct object in raw memory and take ownership if construction succeeds.
+	template <typename Arg1, typename Arg2, typename Arg3>
+	handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3)
+		: handler_(raw_ptr.handler_),
+		pointer_(new (raw_ptr.pointer_) value_type(a1, a2, a3))
+	{
+		// chris
+		pointer_->addref();
+		raw_ptr.pointer_ = 0;
+		// chris    
+	}
+
+	// Construct object in raw memory and take ownership if construction succeeds.
+	template <typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+	handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4)
+		: handler_(raw_ptr.handler_),
+		pointer_(new (raw_ptr.pointer_) value_type(a1, a2, a3, a4))
+	{
+		// chris
+		pointer_->addref();
+		raw_ptr.pointer_ = 0;
+		// chris    
+	}
+
+	// Construct object in raw memory and take ownership if construction succeeds.
+	template <typename Arg1, typename Arg2, typename Arg3, typename Arg4,
+		typename Arg5>
+		handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4,
+		Arg5& a5)
+		: handler_(raw_ptr.handler_),
+		pointer_(new (raw_ptr.pointer_) value_type(a1, a2, a3, a4, a5))
+	{
+		// chris
+		pointer_->addref();
+		raw_ptr.pointer_ = 0;
+		// chris    
+	}
+
+	// Construct object in raw memory and take ownership if construction succeeds.
+	template <typename Arg1, typename Arg2, typename Arg3, typename Arg4,
+		typename Arg5, typename Arg6>
+		handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4,
+		Arg5& a5, Arg6& a6)
+		: handler_(raw_ptr.handler_),
+		pointer_(new (raw_ptr.pointer_) value_type(a1, a2, a3, a4, a5, a6))
+	{
+		// chris
+		pointer_->addref();
+		raw_ptr.pointer_ = 0;
+		// chris    
+	}
+
+	// Construct object in raw memory and take ownership if construction succeeds.
+	template <typename Arg1, typename Arg2, typename Arg3, typename Arg4,
+		typename Arg5, typename Arg6, typename Arg7>
+		handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4,
+		Arg5& a5, Arg6& a6, Arg7& a7)
+		: handler_(raw_ptr.handler_),
+		pointer_(new (raw_ptr.pointer_) value_type(a1, a2, a3, a4, a5, a6, a7))
+	{
+		// chris
+		pointer_->addref();
+		raw_ptr.pointer_ = 0;
+		// chris    
+	}
+
+	// Construct object in raw memory and take ownership if construction succeeds.
+	template <typename Arg1, typename Arg2, typename Arg3, typename Arg4,
+		typename Arg5, typename Arg6, typename Arg7, typename Arg8>
+		handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4,
+		Arg5& a5, Arg6& a6, Arg7& a7, Arg8& a8)
+		: handler_(raw_ptr.handler_),
+		pointer_(new (raw_ptr.pointer_) value_type(
+		a1, a2, a3, a4, a5, a6, a7, a8))
+	{
+		// chris
+		pointer_->addref();
+		raw_ptr.pointer_ = 0;
+		// chris    
+	}
+
+	// Destructor automatically deallocates memory, unless it has been released.
+	~handler_ptr()
+	{
+		reset();
+	}
+
+	// Get the memory.
+	pointer_type get() const
+	{
+		return pointer_;
+	}
+
+	// Release ownership of the memory.
+	pointer_type release()
+	{
+		// chris
+		pointer_type tmp = pointer_;
+		if (pointer_)		
+		{
+			if (pointer_->release() == 0) 
+			{
+				pointer_->value_type::~value_type();
+				boost_asio_handler_alloc_helpers::deallocate(
+					pointer_, value_size, &handler_);			
+			}
+			pointer_ = 0;
+		}
+		return tmp;
+
+		//pointer_type tmp = pointer_;
+		//pointer_ = 0;
+		//return tmp;
+		// chris
+	}
+
+	void addref() 
+	{
+		pointer_->addref();
+	}
+
+	void releaseref()
+	{
+		pointer_->release();
+	}
+
+	// Explicitly destroy and deallocate the memory.
+	void reset()
+	{
+		// chris
+		if (pointer_)		
+		{
+			if (pointer_->release() == 0) 
+			{
+				pointer_->value_type::~value_type();
+				boost_asio_handler_alloc_helpers::deallocate(
+					pointer_, value_size, &handler_);			
+			}
+			pointer_ = 0;
+		}
+		//if (pointer_)
+		//{
+		//  pointer_->value_type::~value_type();
+		//  boost_asio_handler_alloc_helpers::deallocate(
+		//      pointer_, value_size, &handler_);
+		//  pointer_ = 0;
+		//}
+		// chris
+	}
+
+private:
+	handler_type& handler_;
+	pointer_type pointer_;
+};
+
+
+// Helper class to provide RAII on uninitialised handler memory.
+template <typename Alloc_Traits>
+class raw_handler_ptr_old
   : private noncopyable
 {
 public:
@@ -82,7 +344,7 @@ public:
   BOOST_STATIC_CONSTANT(std::size_t, value_size = Alloc_Traits::value_size);
 
   // Constructor allocates the memory.
-  raw_handler_ptr(handler_type& handler)
+  raw_handler_ptr_old(handler_type& handler)
     : handler_(handler),
       pointer_(static_cast<pointer_type>(
             boost_asio_handler_alloc_helpers::allocate(value_size, &handler_)))
@@ -91,7 +353,7 @@ public:
 
   // Destructor automatically deallocates memory, unless it has been stolen by
   // a handler_ptr object.
-  ~raw_handler_ptr()
+  ~raw_handler_ptr_old()
   {
     if (pointer_)
       boost_asio_handler_alloc_helpers::deallocate(
@@ -99,14 +361,14 @@ public:
   }
 
 private:
-  friend class handler_ptr<Alloc_Traits>;
+  friend class handler_ptr_old<Alloc_Traits>;
   handler_type& handler_;
   pointer_type pointer_;
 };
 
 // Helper class to provide RAII on uninitialised handler memory.
 template <typename Alloc_Traits>
-class handler_ptr
+class handler_ptr_old
   : private noncopyable
 {
 public:
@@ -114,17 +376,17 @@ public:
   typedef typename Alloc_Traits::value_type value_type;
   typedef typename Alloc_Traits::pointer_type pointer_type;
   BOOST_STATIC_CONSTANT(std::size_t, value_size = Alloc_Traits::value_size);
-  typedef raw_handler_ptr<Alloc_Traits> raw_ptr_type;
+  typedef raw_handler_ptr_old<Alloc_Traits> raw_ptr_type;
 
   // Take ownership of existing memory.
-  handler_ptr(handler_type& handler, pointer_type pointer)
+  handler_ptr_old(handler_type& handler, pointer_type pointer)
     : handler_(handler),
       pointer_(pointer)
   {
   }
 
   // Construct object in raw memory and take ownership if construction succeeds.
-  handler_ptr(raw_ptr_type& raw_ptr)
+  handler_ptr_old(raw_ptr_type& raw_ptr)
     : handler_(raw_ptr.handler_),
       pointer_(new (raw_ptr.pointer_) value_type)
   {
@@ -133,7 +395,7 @@ public:
 
   // Construct object in raw memory and take ownership if construction succeeds.
   template <typename Arg1>
-  handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1)
+  handler_ptr_old(raw_ptr_type& raw_ptr, Arg1& a1)
     : handler_(raw_ptr.handler_),
       pointer_(new (raw_ptr.pointer_) value_type(a1))
   {
@@ -142,7 +404,7 @@ public:
 
   // Construct object in raw memory and take ownership if construction succeeds.
   template <typename Arg1, typename Arg2>
-  handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2)
+  handler_ptr_old(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2)
     : handler_(raw_ptr.handler_),
       pointer_(new (raw_ptr.pointer_) value_type(a1, a2))
   {
@@ -151,7 +413,7 @@ public:
 
   // Construct object in raw memory and take ownership if construction succeeds.
   template <typename Arg1, typename Arg2, typename Arg3>
-  handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3)
+  handler_ptr_old(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3)
     : handler_(raw_ptr.handler_),
       pointer_(new (raw_ptr.pointer_) value_type(a1, a2, a3))
   {
@@ -160,7 +422,7 @@ public:
 
   // Construct object in raw memory and take ownership if construction succeeds.
   template <typename Arg1, typename Arg2, typename Arg3, typename Arg4>
-  handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4)
+  handler_ptr_old(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4)
     : handler_(raw_ptr.handler_),
       pointer_(new (raw_ptr.pointer_) value_type(a1, a2, a3, a4))
   {
@@ -170,7 +432,7 @@ public:
   // Construct object in raw memory and take ownership if construction succeeds.
   template <typename Arg1, typename Arg2, typename Arg3, typename Arg4,
       typename Arg5>
-  handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4,
+  handler_ptr_old(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4,
       Arg5& a5)
     : handler_(raw_ptr.handler_),
       pointer_(new (raw_ptr.pointer_) value_type(a1, a2, a3, a4, a5))
@@ -181,7 +443,7 @@ public:
   // Construct object in raw memory and take ownership if construction succeeds.
   template <typename Arg1, typename Arg2, typename Arg3, typename Arg4,
       typename Arg5, typename Arg6>
-  handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4,
+  handler_ptr_old(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4,
       Arg5& a5, Arg6& a6)
     : handler_(raw_ptr.handler_),
       pointer_(new (raw_ptr.pointer_) value_type(a1, a2, a3, a4, a5, a6))
@@ -192,7 +454,7 @@ public:
   // Construct object in raw memory and take ownership if construction succeeds.
   template <typename Arg1, typename Arg2, typename Arg3, typename Arg4,
       typename Arg5, typename Arg6, typename Arg7>
-  handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4,
+  handler_ptr_old(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4,
       Arg5& a5, Arg6& a6, Arg7& a7)
     : handler_(raw_ptr.handler_),
       pointer_(new (raw_ptr.pointer_) value_type(a1, a2, a3, a4, a5, a6, a7))
@@ -203,7 +465,7 @@ public:
   // Construct object in raw memory and take ownership if construction succeeds.
   template <typename Arg1, typename Arg2, typename Arg3, typename Arg4,
       typename Arg5, typename Arg6, typename Arg7, typename Arg8>
-  handler_ptr(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4,
+  handler_ptr_old(raw_ptr_type& raw_ptr, Arg1& a1, Arg2& a2, Arg3& a3, Arg4& a4,
       Arg5& a5, Arg6& a6, Arg7& a7, Arg8& a8)
     : handler_(raw_ptr.handler_),
       pointer_(new (raw_ptr.pointer_) value_type(
@@ -213,7 +475,7 @@ public:
   }
 
   // Destructor automatically deallocates memory, unless it has been released.
-  ~handler_ptr()
+  ~handler_ptr_old()
   {
     reset();
   }

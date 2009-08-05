@@ -500,6 +500,7 @@ public:
     DWORD bytes_transferred = 0;
     ptr.get()->Offset = offset & 0xFFFFFFFF;
     ptr.get()->OffsetHigh = (offset >> 32) & 0xFFFFFFFF;
+	ptr.addref();
     BOOL ok = ::WriteFile(impl.handle_,
         boost::asio::buffer_cast<LPCVOID>(buffer),
         static_cast<DWORD>(boost::asio::buffer_size(buffer)),
@@ -510,6 +511,7 @@ public:
     if (!ok && last_error != ERROR_IO_PENDING)
     {
       boost::asio::io_service::work work(this->get_io_service());
+	  ptr.releaseref();
       ptr.reset();
       boost::system::error_code ec(last_error,
           boost::asio::error::get_system_category());
@@ -758,6 +760,7 @@ public:
     DWORD bytes_transferred = 0;
     ptr.get()->Offset = offset & 0xFFFFFFFF;
     ptr.get()->OffsetHigh = (offset >> 32) & 0xFFFFFFFF;
+	ptr.addref();
     BOOL ok = ::ReadFile(impl.handle_,
         boost::asio::buffer_cast<LPVOID>(buffer),
         static_cast<DWORD>(boost::asio::buffer_size(buffer)),
@@ -766,6 +769,7 @@ public:
     if (!ok && last_error != ERROR_IO_PENDING && last_error != ERROR_MORE_DATA)
     {
       boost::asio::io_service::work work(this->get_io_service());
+	  ptr.releaseref();
       ptr.reset();
       boost::system::error_code ec(last_error,
           boost::asio::error::get_system_category());

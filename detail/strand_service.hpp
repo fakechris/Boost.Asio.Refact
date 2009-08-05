@@ -309,7 +309,7 @@ public:
       typedef handler_wrapper<Handler> this_type;
       this_type* h(static_cast<this_type*>(base));
       typedef handler_alloc_traits<Handler, this_type> alloc_traits;
-      handler_ptr<alloc_traits> ptr(h->handler_, h);
+      handler_ptr_old<alloc_traits> ptr(h->handler_, h);
 
       post_next_waiter_on_exit p1(service_impl, impl);
 
@@ -340,7 +340,7 @@ public:
       typedef handler_wrapper<Handler> this_type;
       this_type* h(static_cast<this_type*>(base));
       typedef handler_alloc_traits<Handler, this_type> alloc_traits;
-      handler_ptr<alloc_traits> ptr(h->handler_, h);
+      handler_ptr_old<alloc_traits> ptr(h->handler_, h);
 
       // A sub-object of the handler may be the true owner of the memory
       // associated with the handler. Consequently, a local copy of the handler
@@ -425,8 +425,10 @@ public:
       // Allocate and construct an object to wrap the handler.
       typedef handler_wrapper<Handler> value_type;
       typedef handler_alloc_traits<Handler, value_type> alloc_traits;
-      raw_handler_ptr<alloc_traits> raw_ptr(handler);
-      handler_ptr<alloc_traits> ptr(raw_ptr, handler);
+	  // chris
+      raw_handler_ptr_old<alloc_traits> raw_ptr(handler);
+      handler_ptr_old<alloc_traits> ptr(raw_ptr, handler);
+	  // chris
 
       boost::asio::detail::mutex::scoped_lock lock(impl->mutex_);
 

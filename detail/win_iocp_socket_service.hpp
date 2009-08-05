@@ -872,6 +872,7 @@ public:
 
     // Send the data.
     DWORD bytes_transferred = 0;
+	ptr.addref();
     int result = ::WSASend(impl.socket_, bufs, i,
         &bytes_transferred, flags, ptr.get(), 0);
     DWORD last_error = ::WSAGetLastError();
@@ -880,6 +881,7 @@ public:
     if (result != 0 && last_error != WSA_IO_PENDING)
     {
       boost::asio::io_service::work work(this->get_io_service());
+	  ptr.releaseref();
       ptr.reset();
       boost::system::error_code ec(last_error,
           boost::asio::error::get_system_category());
@@ -1138,6 +1140,7 @@ public:
 
     // Send the data.
     DWORD bytes_transferred = 0;
+	ptr.addref();
     int result = ::WSASendTo(impl.socket_, bufs, i, &bytes_transferred, flags,
         destination.data(), static_cast<int>(destination.size()), ptr.get(), 0);
     DWORD last_error = ::WSAGetLastError();
@@ -1146,6 +1149,7 @@ public:
     if (result != 0 && last_error != WSA_IO_PENDING)
     {
       boost::asio::io_service::work work(this->get_io_service());
+	  ptr.releaseref();
       ptr.reset();
       boost::system::error_code ec(last_error,
           boost::asio::error::get_system_category());
@@ -1425,12 +1429,14 @@ public:
     // Receive some data.
     DWORD bytes_transferred = 0;
     DWORD recv_flags = flags;
+	ptr.addref();
     int result = ::WSARecv(impl.socket_, bufs, i,
         &bytes_transferred, &recv_flags, ptr.get(), 0);
     DWORD last_error = ::WSAGetLastError();
     if (result != 0 && last_error != WSA_IO_PENDING)
     {
       boost::asio::io_service::work work(this->get_io_service());
+	  ptr.releaseref();
       ptr.reset();
       boost::system::error_code ec(last_error,
           boost::asio::error::get_system_category());
@@ -1477,12 +1483,14 @@ public:
       ::WSABUF buf = { 0, 0 };
       DWORD bytes_transferred = 0;
       DWORD recv_flags = flags;
+	  ptr.addref();
       int result = ::WSARecv(impl.socket_, &buf, 1,
           &bytes_transferred, &recv_flags, ptr.get(), 0);
       DWORD last_error = ::WSAGetLastError();
       if (result != 0 && last_error != WSA_IO_PENDING)
       {
         boost::asio::io_service::work work(this->get_io_service());
+		ptr.releaseref();
         ptr.reset();
         boost::system::error_code ec(last_error,
             boost::asio::error::get_system_category());
@@ -1748,6 +1756,7 @@ public:
     // Receive some data.
     DWORD bytes_transferred = 0;
     DWORD recv_flags = flags;
+	ptr.addref();
     int result = ::WSARecvFrom(impl.socket_, bufs, i, &bytes_transferred,
         &recv_flags, sender_endp.data(), &ptr.get()->endpoint_size(),
         ptr.get(), 0);
@@ -1755,6 +1764,7 @@ public:
     if (result != 0 && last_error != WSA_IO_PENDING)
     {
       boost::asio::io_service::work work(this->get_io_service());
+	  ptr.releaseref();
       ptr.reset();
       boost::system::error_code ec(last_error,
           boost::asio::error::get_system_category());
@@ -2124,6 +2134,7 @@ public:
         peer_endpoint, enable_connection_aborted, handler);
     sock.release();
 
+	ptr.addref();
     // Accept a connection.
     DWORD bytes_read = 0;
     BOOL result = ::AcceptEx(impl.socket_, ptr.get()->new_socket(),
@@ -2147,6 +2158,7 @@ public:
       else
       {
         boost::asio::io_service::work work(this->get_io_service());
+		ptr.releaseref();
         ptr.reset();
         boost::system::error_code ec(last_error,
             boost::asio::error::get_system_category());

@@ -51,8 +51,8 @@ public:
   {
     // Allocate and construct an object to wrap the handler.
     typedef handler_alloc_traits<Operation, op<Operation> > alloc_traits;
-    raw_handler_ptr<alloc_traits> raw_ptr(operation);
-    handler_ptr<alloc_traits> ptr(raw_ptr, descriptor, operation);
+    raw_handler_ptr_old<alloc_traits> raw_ptr(operation);
+    handler_ptr_old<alloc_traits> ptr(raw_ptr, descriptor, operation);
 
     typedef typename operation_map::iterator iterator;
     typedef typename operation_map::value_type value_type;
@@ -396,7 +396,7 @@ private:
       typedef op<Operation> this_type;
       this_type* this_op(static_cast<this_type*>(base));
       typedef handler_alloc_traits<Operation, this_type> alloc_traits;
-      handler_ptr<alloc_traits> ptr(this_op->operation_, this_op);
+      handler_ptr_old<alloc_traits> ptr(this_op->operation_, this_op);
 
       // Make a copy of the error_code and the operation so that the memory can
       // be deallocated before the upcall is made.
@@ -417,7 +417,7 @@ private:
       typedef op<Operation> this_type;
       this_type* this_op(static_cast<this_type*>(base));
       typedef handler_alloc_traits<Operation, this_type> alloc_traits;
-      handler_ptr<alloc_traits> ptr(this_op->operation_, this_op);
+      handler_ptr_old<alloc_traits> ptr(this_op->operation_, this_op);
 
       // A sub-object of the operation may be the true owner of the memory
       // associated with the operation. Consequently, a local copy of the

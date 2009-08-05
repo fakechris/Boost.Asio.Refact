@@ -285,7 +285,7 @@ private:
       typedef timer<Handler> this_type;
       this_type* this_timer(static_cast<this_type*>(base));
       typedef handler_alloc_traits<Handler, this_type> alloc_traits;
-      handler_ptr<alloc_traits> ptr(this_timer->handler_, this_timer);
+      handler_ptr_old<alloc_traits> ptr(this_timer->handler_, this_timer);
 
       // Make a copy of the error_code and the handler so that the memory can
       // be deallocated before the upcall is made.
@@ -306,7 +306,7 @@ private:
       typedef timer<Handler> this_type;
       this_type* this_timer(static_cast<this_type*>(base));
       typedef handler_alloc_traits<Handler, this_type> alloc_traits;
-      handler_ptr<alloc_traits> ptr(this_timer->handler_, this_timer);
+      handler_ptr_old<alloc_traits> ptr(this_timer->handler_, this_timer);
 
       // A sub-object of the handler may be the true owner of the memory
       // associated with the handler. Consequently, a local copy of the handler
