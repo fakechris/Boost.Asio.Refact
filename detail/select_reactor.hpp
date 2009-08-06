@@ -366,6 +366,16 @@ private:
     boost::system::error_code ec;
     int retval = socket_ops::select(static_cast<int>(max_fd + 1),
         read_fds, write_fds, except_fds, tv, ec);
+	//miaoxijun
+	/*
+	if(retval == -1 && read_op_queue_.empty())
+	{
+		char buf[40] = {0};
+		sprintf_s(buf, 39, "9D: select reactor failed %d\r\n", GetLastError());
+		OutputDebugString(buf);
+		interrupter_.reset_readandwrite_descriptor();
+	}
+	*/
     lock.lock();
     select_in_progress_ = false;
 

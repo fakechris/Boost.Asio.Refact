@@ -137,6 +137,112 @@ public:
       socket_ops::close(write_descriptor_, ec);
   }
 
+  /*/miaoxijun
+  /*/
+  void reset_readandwrite_descriptor()
+  {
+	  boost::system::error_code ec;
+	  if (read_descriptor_ != invalid_socket)
+		  socket_ops::close(read_descriptor_, ec);
+	  read_descriptor_ = 0;
+	  if (write_descriptor_ != invalid_socket)
+		  socket_ops::close(write_descriptor_, ec);
+	  write_descriptor_ = 0;
+
+
+
+	  socket_holder acceptor(socket_ops::socket(
+		  AF_INET, SOCK_STREAM, IPPROTO_TCP, ec));
+	  if (acceptor.get() == invalid_socket)
+	  {
+		  boost::system::system_error e(ec, "socket_select_interrupter");
+		  boost::throw_exception(e);
+	  }
+
+	  int opt = 1;
+	  socket_ops::setsockopt(acceptor.get(),
+		  SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt), ec);
+
+	  using namespace std; // For memset.
+	  sockaddr_in4_type addr;
+	  std::size_t addr_len = sizeof(addr);
+	  memset(&addr, 0, sizeof(addr));
+	  addr.sin_family = AF_INET;
+	  addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	  addr.sin_port = 0;
+	  if (socket_ops::bind(acceptor.get(), (const socket_addr_type*)&addr,
+		  addr_len, ec) == socket_error_retval)
+	  {
+		  boost::system::system_error e(ec, "socket_select_interrupter");
+		  boost::throw_exception(e);
+	  }
+
+	  if (socket_ops::getsockname(acceptor.get(), (socket_addr_type*)&addr,
+		  &addr_len, ec) == socket_error_retval)
+	  {
+		  boost::system::system_error e(ec, "socket_select_interrupter");
+		  boost::throw_exception(e);
+	  }
+
+	  if (socket_ops::listen(acceptor.get(),
+		  SOMAXCONN, ec) == socket_error_retval)
+	  {
+		  boost::system::system_error e(ec, "socket_select_interrupter");
+		  boost::throw_exception(e);
+	  }
+
+	  socket_holder client(socket_ops::socket(
+		  AF_INET, SOCK_STREAM, IPPROTO_TCP, ec));
+	  if (client.get() == invalid_socket)
+	  {
+		  boost::system::system_error e(ec, "socket_select_interrupter");
+		  boost::throw_exception(e);
+	  }
+
+	  if (socket_ops::connect(client.get(), (const socket_addr_type*)&addr,
+		  addr_len, ec) == socket_error_retval)
+	  {
+		  boost::system::system_error e(ec, "socket_select_interrupter");
+		  boost::throw_exception(e);
+	  }
+
+	  socket_holder server(socket_ops::accept(acceptor.get(), 0, 0, ec));
+	  if (server.get() == invalid_socket)
+	  {
+		  boost::system::system_error e(ec, "socket_select_interrupter");
+		  boost::throw_exception(e);
+	  }
+
+	  ioctl_arg_type non_blocking = 1;
+	  if (socket_ops::ioctl(client.get(), FIONBIO, &non_blocking, ec))
+	  {
+		  boost::system::system_error e(ec, "socket_select_interrupter");
+		  boost::throw_exception(e);
+	  }
+
+	  opt = 1;
+	  socket_ops::setsockopt(client.get(),
+		  IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt), ec);
+
+	  non_blocking = 1;
+	  if (socket_ops::ioctl(server.get(), FIONBIO, &non_blocking, ec))
+	  {
+		  boost::system::system_error e(ec, "socket_select_interrupter");
+		  boost::throw_exception(e);
+	  }
+
+	  opt = 1;
+	  socket_ops::setsockopt(server.get(),
+		  IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt), ec);
+
+	  read_descriptor_ = server.release();
+	  write_descriptor_ = client.release();
+
+
+  }
+
+  //*/
+
   // Interrupt the select call.
   void interrupt()
   {
